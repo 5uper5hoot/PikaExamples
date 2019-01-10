@@ -12,4 +12,4 @@ View the original source here:
 
 
 from .async_publisher import AsyncPublisher
-from .async_consumer import async_consumer
+from .async_consumer import AsyncConsumer
