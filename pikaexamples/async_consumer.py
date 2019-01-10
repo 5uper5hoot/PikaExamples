@@ -19,7 +19,7 @@ class AsyncConsumer(object):
 
     View the original source here:
 
-        pika/examples/asynchronous_publisher_example.py
+        github.com/pika/pika/examples/asynchronous_publisher_example.py
 
     Example taken from git ref:
 
