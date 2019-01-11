@@ -15,16 +15,16 @@ pika v0.12.0, use PikaTools v0.12.0.
 `pip install pikatools`
 
 ## To Do
-=====* Create usage examples
+* Create usage examples
 * Create documentation
 * Include more of the pika examples.
 * Build versions for other releases.
 
 ## License For Code Sourced From github.com/pika/pika/examples
 
-Example code found in async_consumer.py and async_publisher.py, has only been only trivially modified and is governed by the pika BSD 3-Clause "NEW" or "Revised" Licence as found [here](https://github.com/pika/pika/blob/master/LICENSE).
+Example code found in async_consumer.py and async_publisher.py, has only been only trivially modified and is governed by the `pika` `BSD 3-Clause "NEW" or "Revised" Licence` as found [here](https://github.com/pika/pika/blob/master/LICENSE).
 
-## License For Original Code
+## License For My Original Code
 
 The MIT License (MIT)
 
