@@ -8,7 +8,9 @@
 ## Versioning
 
 Releases are mapped to the equivalent version of pika. E.g., if you are pinned to
-pika v0.12.0, use PikaTools v0.12.0.
+pika v0.12.0, use PikaTools ~= v0.12.0. With that in mind, I may increment the patch
+version number to make backward compatible functionality additions, as well as patch
+releases.
 
 ## Install
 
