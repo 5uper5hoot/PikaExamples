@@ -1,33 +1,30 @@
 # PikaTools
 
-Includes
-========
+## Includes
+
 * Pip install examples from https://pika.readthedocs.io/en/latest/examples.html
 * Connection Parameter class that automatically pulls values from environment variables.
 
-Versioning
-==========
+## Versioning
+
 Releases are mapped to the equivalent version of pika. E.g., if you are pinned to
 pika v0.12.0, use PikaTools v0.12.0.
 
-Install
-=======
+## Install
+
 `pip install pikatools`
 
-To Do
-=====
-* Create usage examples
+## To Do
+=====* Create usage examples
 * Create documentation
 * Include more of the pika examples.
 * Build versions for other releases.
 
-License For Code Sourced From github.com/pika/pika/examples
-===========================================================
+## License For Code Sourced From github.com/pika/pika/examples
 
 Example code found in async_consumer.py and async_publisher.py, has only been only trivially modified and is governed by the pika BSD 3-Clause "NEW" or "Revised" Licence as found [here](https://github.com/pika/pika/blob/master/LICENSE).
 
-License For Original Code
-=========================
+## License For Original Code
 
 The MIT License (MIT)
 
