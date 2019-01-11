@@ -4,7 +4,7 @@ import ssl
 import pika
 import pytest
 
-from pikaexamples import EnvConnectionParameters
+from pikatools import EnvConnectionParameters
 
 
 def test_default_params_match_parent_class():

@@ -6,9 +6,9 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'pikaexamples'
-DESCRIPTION = 'Make examples from https://pika.readthedocs.io/en/latest/examples.html pip installable.'
-URL = 'https://github.com/5uper5hoot/PikaExamples'
+NAME = 'pikatools'
+DESCRIPTION = 'A collection of pika helpers.'
+URL = 'https://github.com/5uper5hoot/PikaTools'
 EMAIL = 'peter_schutt@bigpond.com'
 AUTHOR = 'Peter Schutt'
 REQUIRES_PYTHON = '>=3.6.0'
