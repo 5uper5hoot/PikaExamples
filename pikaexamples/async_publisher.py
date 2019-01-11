@@ -46,13 +46,20 @@ class AsyncPublisher(object):
     QUEUE = 'text'
     ROUTING_KEY = 'example.text'
 
-    def __init__(self, amqp_url):
+    def __init__(self,  amqp_url=None, conn_params=None):
         """Setup the example publisher object, passing in the URL we will use
         to connect to RabbitMQ.
 
         :param str amqp_url: The URL for connecting to RabbitMQ
 
         """
+
+        if amqp_url is None and conn_params is None:
+            raise TypeError('One of amqp_url or conn_parms must be provided')
+
+        if amqp_url and conn_params:
+            raise TypeError('Supply only one of amqp_url or conn_params')
+
         self._connection = None
         self._channel = None
 
@@ -63,6 +70,7 @@ class AsyncPublisher(object):
 
         self._stopping = False
         self._url = amqp_url
+        self._conn_params = conn_params
 
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -75,7 +83,13 @@ class AsyncPublisher(object):
 
         """
         logging.info('Connecting to %s', self._url)
-        return pika.SelectConnection(pika.URLParameters(self._url),
+
+        if self._url:
+            params = self.URLParameters(self._url)
+        else:
+            params = self._conn_params
+
+        return pika.SelectConnection(params,
                                      on_open_callback=self.on_connection_open,
                                      on_close_callback=self.on_connection_closed,
                                      stop_ioloop_on_close=False)

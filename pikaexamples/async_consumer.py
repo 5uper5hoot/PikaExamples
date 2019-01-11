@@ -44,18 +44,26 @@ class AsyncConsumer(object):
     QUEUE = 'text'
     ROUTING_KEY = 'example.text'
 
-    def __init__(self, amqp_url):
+    def __init__(self, amqp_url=None, conn_params=None):
         """Create a new instance of the consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
         :param str amqp_url: The AMQP url to connect with
-
+        :param pika.connection.Parameters conn_params:
+            Instance of type that is subclass of pika.connection.Parameters.
         """
+        if amqp_url is None and conn_params is None:
+            raise TypeError('One of amqp_url or conn_parms must be provided')
+
+        if amqp_url and conn_params:
+            raise TypeError('Supply only one of amqp_url or conn_params')
+
         self._connection = None
         self._channel = None
         self._closing = False
         self._consumer_tag = None
         self._url = amqp_url
+        self._conn_params = conn_params
 
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -66,9 +74,15 @@ class AsyncConsumer(object):
 
         """
         logging.info('Connecting to %s', self._url)
-        return pika.SelectConnection(pika.URLParameters(self._url),
-                                        self.on_connection_open,
-                                        stop_ioloop_on_close=False)
+
+        if self._url:
+            params = self.URLParameters(self._url)
+        else:
+            params = self._conn_params
+
+        return pika.SelectConnection(params,
+                                     self.on_connection_open,
+                                     stop_ioloop_on_close=False)
 
     def on_connection_open(self, unused_connection):
         """This method is called by pika once the connection to RabbitMQ has
