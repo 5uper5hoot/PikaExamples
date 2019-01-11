@@ -5,6 +5,9 @@ import ssl
 
 import pika
 
+# alternate bool constructor that first converts arg to int.
+bool_ = lambda s: bool(int(s))
+
 
 class EnvConnectionParameters(pika.ConnectionParameters):
     """ Values for all connection parameters are established using
@@ -119,16 +122,12 @@ class EnvConnectionParameters(pika.ConnectionParameters):
 
     def __init__(self, heartbeat_callable=None):
 
-        def _env_or_def(attr, cast):
+        def _env_or_default(attr, cast):
             """ Return environment variable or existing value."""
             try:
                 return cast(os.environ[f'PIKA_{attr.upper()}'])
             except KeyError:
                 return getattr(self, attr)
-
-        def bool_(str):
-            """ Convert str to int, before casting to bool"""
-            return bool(int(str))
 
         # pre-populates all attrs with default values
         super(pika.ConnectionParameters, self).__init__()
@@ -147,7 +146,7 @@ class EnvConnectionParameters(pika.ConnectionParameters):
             ('ssl', bool_),
             ('virtual_host', str)
         ]:
-            _env_or_def(attr, cast)
+            setattr(self, attr, _env_or_default(attr, cast))
 
         if os.getenv('PIKA_PORT', None):
             self.port = os.getenv('PIKA_PORT')
@@ -183,16 +182,20 @@ class EnvConnectionParameters(pika.ConnectionParameters):
 
     def _get_client_properties(self):
         properties_prefix = 'PIKA_CLIENT_PROPERTIES'
-        properties_keys = ['product', 'platform', 'information', 'version']
+        properties_keys = ['product',
+                           'platform',
+                           'information',
+                           'version']
         properties = self._get_related_env_vars(
             properties_prefix, properties_keys)
 
         capabilities_prefix = 'PIKA_CLIENT_PROPERTIES_CAPABILITIES'
-        capabilities_keys = ['authentication_failure_close', 'basic.nack',
-                             'connection.blocked', 'consumer_cancel_notify',
+        capabilities_keys = ['authentication_failure_close',
+                             'basic.nack',
+                             'connection.blocked',
+                             'consumer_cancel_notify',
                              'publisher_confirms']
-        bool_ = lambda s: bool(int(s))
-        capabilities_casts = [bool_ for s in capabilities_keys]
+        capabilities_casts = (bool_ for s in capabilities_keys)
         capabilities = self._get_related_env_vars(
             capabilities_prefix, capabilities_keys, capabilities_casts)
 
@@ -203,9 +206,12 @@ class EnvConnectionParameters(pika.ConnectionParameters):
 
     def _get_credentials(self):
         prefix = 'PIKA_CREDENTIALS'
-        keys = ['username', 'password', 'erase_on_connect']
+        keys = ['username',
+                'password',
+                'erase_on_connect']
         casts = [str, str, lambda s: bool(int(s))]
         credentials = self._get_related_env_vars(prefix, keys, casts)
+
         if credentials:
             return pika.PlainCredentials(**credentials)
         else:
@@ -213,23 +219,31 @@ class EnvConnectionParameters(pika.ConnectionParameters):
 
     def _get_ssl_options(self):
         prefix = 'PIKA_SSL_OPTIONS'
-        keys = ['keyfile', 'key_password', 'certfile', 'server_side',
-                'verify_mode', 'ssl_version', 'cafile', 'capath', 'cadata',
-                'do_handshake_on_connect', 'suppress_ragged_eofs',
-                'ciphers', 'server_hostname']
-        bool_ = lambda s: bool(int(s))
-        casts = [str, str, str, bool_, str, str, str, str, str, bool_, bool_,
-                 str, str]
-        ssl_options = self._get_related_env_vars(prefix, keys, casts)
+        atrs = {'keyfile': str,
+                'key_password': str,
+                'certfile': str,
+                'server_side': bool_,
+                'verify_mode': str,
+                'ssl_version': str,
+                'cafile': str,
+                'capath': str,
+                'cadata': str,
+                'do_handshake_on_connect': bool_,
+                'suppress_ragged_eofs': bool_,
+                'ciphers': str,
+                'server_hostname': str}
+
+        ssl_options = self._get_related_env_vars(
+            prefix, atrs.keys(), atrs.values())
 
         if ssl_options:
             if 'verify_mode' in ssl_options:
-                ssl_options['verify_mode'] = \
-                    getattr(ssl, ssl_options['verify_mode'])
+                ssl_options['verify_mode'] = getattr(
+                    ssl, ssl_options['verify_mode'])
 
             if 'ssl_version' in ssl_options:
-                ssl_options['ssl_version'] = \
-                    getattr(ssl, ssl_options['ssl_version'])
+                ssl_options['ssl_version'] = getattr(
+                    ssl, ssl_options['ssl_version'])
 
             return pika.SSLOptions(**ssl_options)
         else:
@@ -237,7 +251,12 @@ class EnvConnectionParameters(pika.ConnectionParameters):
 
     def _get_tcp_options(self):
         prefix = 'PIKA_TCP_OPTIONS'
-        keys = ['TCP_KEEPIDLE', 'TCP_KEEPINTVL', 'TCP_KEEPCNT',
+        keys = ['TCP_KEEPIDLE',
+                'TCP_KEEPINTVL',
+                'TCP_KEEPCNT',
                 'TCP_USER_TIMEOUT']
-        options = self._get_related_env_vars(prefix, keys)
-        return options or getattr(self, 'tcp_options')
+        casts = [int] * 4
+
+        tcp_options = self._get_related_env_vars(prefix, keys, casts)
+
+        return tcp_options or getattr(self, 'tcp_options')
