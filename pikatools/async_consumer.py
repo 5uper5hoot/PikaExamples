@@ -102,7 +102,7 @@ class AsyncConsumer(object):
         logging.info('Connecting to %s', self._url)
 
         if self._url:
-            params = self.URLParameters(self._url)
+            params = pika.URLParameters(self._url)
         else:
             params = self._conn_params
 
