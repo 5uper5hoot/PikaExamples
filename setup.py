@@ -16,7 +16,7 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pika'
+    'pika~=0.12.0'
 ]
 
 EXTRAS = {}
