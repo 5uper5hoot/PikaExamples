@@ -40,7 +40,6 @@ POSSIBILITY OF SUCH DAMAGE.
 from __future__ import unicode_literals
 
 import json
-import select
 import threading
 import time
 import uuid
@@ -185,10 +184,10 @@ class TestQueuedPool(object):
 
     def test_invalidate_connection(slef, queued_pool):
         msg = Message.generate()
-        with pytest.raises(select.error):
+        with pytest.raises(pika.exceptions.AMQPConnectionError):
             with queued_pool.acquire() as cxn:
                 fairy = cxn.fairy
-                raise select.error(9, 'Bad file descriptor')
+                raise pika.exceptions.AMQPConnectionError
         assert fairy.cxn.is_closed
 
     def test_pub(self, queued_pool):

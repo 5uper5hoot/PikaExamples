@@ -148,8 +148,7 @@ class Connection:
     connectivity_errors = (
         pika.exceptions.AMQPConnectionError,
         pika.exceptions.ConnectionClosed,
-        pika.exceptions.ChannelClosed,
-        select.error,  # XXX: https://github.com/pika/pika/issues/412
+        pika.exceptions.ChannelClosed
     )
 
     @classmethod
