@@ -1,9 +1,16 @@
 # PikaTools
 
+###############################################################################
+
+WARNING: DON'T DEPEND ON ME YET! STILL VERY UNSTABLE!!
+
+###############################################################################
+
 ## Includes
 
 * Importable examples from https://pika.readthedocs.io/en/latest/examples.html
 * Connection Parameter class that automatically pulls values from environment variables.
+* Connection Pool
 
 ## Versioning
 
@@ -16,11 +23,12 @@ releases.
 
 `pip install pikatools`
 
-## To Do
+## README To Do
 * Create usage examples
 * Create documentation
 * Include more of the pika examples.
 * Build versions for other releases.
+* Change log.
 
 ## License For Code Sourced From github.com/pika/pika/examples
 
