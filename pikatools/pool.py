@@ -376,7 +376,7 @@ class QueuedPool(Pool):
         # inc
         with self._avail_lock:
             self._avail += 1
-        return super(QueuedPool, self).close(fairy)
+        return super().close(fairy)
 
     def _create(self):
         # dec
@@ -385,7 +385,7 @@ class QueuedPool(Pool):
                 raise Overflow()
             self._avail -= 1
         try:
-            return super(QueuedPool, self)._create()
+            return super()._create()
         except:
             # inc
             with self._avail_lock:
