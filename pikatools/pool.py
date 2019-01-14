@@ -84,17 +84,11 @@ Use it like e.g. this:
         )
 
 """
-from __future__ import unicode_literals
 
 from datetime import datetime
 import logging
 
-try:
-    # python 3
-    import queue
-except ImportError:
-    # python 2
-    import Queue as queue
+import queue
 
 import select
 import socket
@@ -103,8 +97,6 @@ import time
 
 import pika.exceptions
 
-
-__version__ = '0.1.2'
 
 __all__ = [
     'Error'
@@ -141,7 +133,7 @@ class Timeout(Error):
     pass
 
 
-class Connection(object):
+class Connection:
     """
     Connection acquired from a `Pool` instance. Get them like this:
 
@@ -201,7 +193,7 @@ class Connection(object):
             self.close()
 
 
-class Pool(object):
+class Pool:
     """
     Pool interface similar to:
 
@@ -245,7 +237,7 @@ class Pool(object):
         """
         fairy.close()
 
-    class Fairy(object):
+    class Fairy:
         """
         Connection wrapper for tracking its associated state.
         """
@@ -346,7 +338,7 @@ class QueuedPool(Pool):
         self._queue = queue.Queue(maxsize=self.max_size)
         self._avail_lock = threading.Lock()
         self._avail = self.max_size + self.max_overflow
-        super(QueuedPool, self).__init__(create)
+        super().__init__(create)
 
     def acquire(self, timeout=None):
         try:
@@ -403,7 +395,7 @@ class QueuedPool(Pool):
     class Fairy(Pool.Fairy):
 
         def __init__(self, cxn):
-            super(QueuedPool.Fairy, self).__init__(cxn)
+            super().__init__(cxn)
             self.released_at = self.created_at = time.time()
 
         def __str__(self):
