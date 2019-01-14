@@ -203,12 +203,13 @@ class TestQueuedPool(object):
         assert msg.id in consumed
 
     def test_expire(self, queued_pool):
+        assert queued_pool.recycle
         with queued_pool.acquire() as cxn:
             expired = id(cxn.fairy.cxn)
             expires_at = cxn.fairy.created_at + queued_pool.recycle
         with queued_pool.acquire() as cxn:
             assert expired == id(cxn.fairy.cxn)
-            cxn.fairy.created_at -= queued_pool.recycle
+            cxn.fairy.created_at -= (queued_pool.recycle + 1)
         with queued_pool.acquire() as cxn:
             assert expired != id(cxn.fairy.cxn)
 
@@ -218,7 +219,7 @@ class TestQueuedPool(object):
             fairy = cxn.fairy
         with queued_pool.acquire() as cxn:
             assert stale == id(cxn.fairy.cxn)
-        fairy.released_at -= queued_pool.stale
+        fairy.released_at -= (queued_pool.stale + 1)
         with queued_pool.acquire() as cxn:
             assert stale != id(cxn.fairy.cxn)
 
