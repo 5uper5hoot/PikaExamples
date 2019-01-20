@@ -10,6 +10,9 @@ View the original source here:
 
 """
 
+import logging
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 from .async_publisher import AsyncPublisher
 from .async_consumer import AsyncConsumer
