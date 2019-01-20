@@ -53,6 +53,8 @@ import logging
 import pika
 import json
 
+logger = logging.getLogger(__name__)
+
 
 class AsyncPublisher(object):
     """This is an example publisher that will handle unexpected interactions
@@ -109,7 +111,7 @@ class AsyncPublisher(object):
         :rtype: pika.SelectConnection
 
         """
-        logging.info('Connecting to %s', self._url)
+        logger.info('Connecting to %s', self._url)
 
         if self._url:
             params = pika.URLParameters(self._url)
@@ -129,7 +131,7 @@ class AsyncPublisher(object):
         :type unused_connection: pika.SelectConnection
 
         """
-        logging.info('Connection opened')
+        logger.info('Connection opened')
         self.open_channel()
 
     def on_connection_closed(self, connection, reply_code, reply_text):
@@ -146,7 +148,7 @@ class AsyncPublisher(object):
         if self._stopping:
             self._connection.ioloop.stop()
         else:
-            logging.warning('Connection closed, reopening in 5 seconds: (%s) %s',
+            logger.warning('Connection closed, reopening in 5 seconds: (%s) %s',
                            reply_code, reply_text)
             self._connection.add_timeout(5, self._connection.ioloop.stop)
 
@@ -157,7 +159,7 @@ class AsyncPublisher(object):
         will be invoked.
 
         """
-        logging.info('Creating a new channel')
+        logger.info('Creating a new channel')
         self._connection.channel(on_open_callback=self.on_channel_open)
 
     def on_channel_open(self, channel):
@@ -169,7 +171,7 @@ class AsyncPublisher(object):
         :param pika.channel.Channel channel: The channel object
 
         """
-        logging.info('Channel opened')
+        logger.info('Channel opened')
         self._channel = channel
         self.add_on_channel_close_callback()
         self.setup_exchange(self.EXCHANGE)
@@ -179,7 +181,7 @@ class AsyncPublisher(object):
         RabbitMQ unexpectedly closes the channel.
 
         """
-        logging.info('Adding channel close callback')
+        logger.info('Adding channel close callback')
         self._channel.add_on_close_callback(self.on_channel_closed)
 
     def on_channel_closed(self, channel, reply_code, reply_text):
@@ -194,7 +196,7 @@ class AsyncPublisher(object):
         :param str reply_text: The text reason the channel was closed
 
         """
-        logging.warning('Channel was closed: (%s) %s', reply_code, reply_text)
+        logger.warning('Channel was closed: (%s) %s', reply_code, reply_text)
         self._channel = None
         if not self._stopping:
             self._connection.close()
@@ -207,7 +209,7 @@ class AsyncPublisher(object):
         :param str|unicode exchange_name: The name of the exchange to declare
 
         """
-        logging.info('Declaring exchange %s', exchange_name)
+        logger.info('Declaring exchange %s', exchange_name)
         self._channel.exchange_declare(self.on_exchange_declareok,
                                        exchange_name,
                                        self.EXCHANGE_TYPE)
@@ -219,7 +221,7 @@ class AsyncPublisher(object):
         :param pika.Frame.Method unused_frame: Exchange.DeclareOk response frame
 
         """
-        logging.info('Exchange declared')
+        logger.info('Exchange declared')
         self.setup_queue(self.QUEUE)
 
     def setup_queue(self, queue_name):
@@ -230,7 +232,7 @@ class AsyncPublisher(object):
         :param str|unicode queue_name: The name of the queue to declare.
 
         """
-        logging.info('Declaring queue %s', queue_name)
+        logger.info('Declaring queue %s', queue_name)
         self._channel.queue_declare(self.on_queue_declareok, queue_name)
 
     def on_queue_declareok(self, method_frame):
@@ -243,7 +245,7 @@ class AsyncPublisher(object):
         :param pika.frame.Method method_frame: The Queue.DeclareOk frame
 
         """
-        logging.info('Binding %s to %s with %s',
+        logger.info('Binding %s to %s with %s',
                     self.EXCHANGE, self.QUEUE, self.ROUTING_KEY)
         self._channel.queue_bind(self.on_bindok, self.QUEUE,
                                  self.EXCHANGE, self.ROUTING_KEY)
@@ -252,7 +254,7 @@ class AsyncPublisher(object):
         """This method is invoked by pika when it receives the Queue.BindOk
         response from RabbitMQ. Since we know we're now setup and bound, it's
         time to start publishing."""
-        logging.info('Queue bound')
+        logger.info('Queue bound')
         self.start_publishing()
 
     def start_publishing(self):
@@ -260,7 +262,7 @@ class AsyncPublisher(object):
         first message to be sent to RabbitMQ
 
         """
-        logging.info('Issuing consumer related RPC commands')
+        logger.info('Issuing consumer related RPC commands')
         self.enable_delivery_confirmations()
         self.schedule_next_message()
 
@@ -275,7 +277,7 @@ class AsyncPublisher(object):
         is confirming or rejecting.
 
         """
-        logging.info('Issuing Confirm.Select RPC command')
+        logger.info('Issuing Confirm.Select RPC command')
         self._channel.confirm_delivery(self.on_delivery_confirmation)
 
     def on_delivery_confirmation(self, method_frame):
@@ -292,7 +294,7 @@ class AsyncPublisher(object):
 
         """
         confirmation_type = method_frame.method.NAME.split('.')[1].lower()
-        logging.info('Received %s for delivery tag: %i',
+        logger.info('Received %s for delivery tag: %i',
                     confirmation_type,
                     method_frame.method.delivery_tag)
         if confirmation_type == 'ack':
@@ -300,7 +302,7 @@ class AsyncPublisher(object):
         elif confirmation_type == 'nack':
             self._nacked += 1
         self._deliveries.remove(method_frame.method.delivery_tag)
-        logging.info('Published %i messages, %i have yet to be confirmed, '
+        logger.info('Published %i messages, %i have yet to be confirmed, '
                     '%i were acked and %i were nacked',
                     self._message_number, len(self._deliveries),
                     self._acked, self._nacked)
@@ -310,7 +312,7 @@ class AsyncPublisher(object):
         message to be delivered in PUBLISH_INTERVAL seconds.
 
         """
-        logging.info('Scheduling next message for %0.1f seconds',
+        logger.info('Scheduling next message for %0.1f seconds',
                     self.PUBLISH_INTERVAL)
         self._connection.add_timeout(self.PUBLISH_INTERVAL,
                                      self.publish_message)
@@ -344,7 +346,7 @@ class AsyncPublisher(object):
                                     properties)
         self._message_number += 1
         self._deliveries.append(self._message_number)
-        logging.info('Published message # %i', self._message_number)
+        logger.info('Published message # %i', self._message_number)
         self.schedule_next_message()
 
     def run(self):
@@ -368,7 +370,7 @@ class AsyncPublisher(object):
                     # Finish closing
                     self._connection.ioloop.start()
 
-        logging.info('Stopped')
+        logger.info('Stopped')
 
     def stop(self):
         """Stop the example by closing the channel and connection. We
@@ -379,7 +381,7 @@ class AsyncPublisher(object):
         disconnect from RabbitMQ.
 
         """
-        logging.info('Stopping')
+        logger.info('Stopping')
         self._stopping = True
         self.close_channel()
         self.close_connection()
@@ -390,11 +392,11 @@ class AsyncPublisher(object):
 
         """
         if self._channel is not None:
-            logging.info('Closing the channel')
+            logger.info('Closing the channel')
             self._channel.close()
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
         if self._connection is not None:
-            logging.info('Closing connection')
+            logger.info('Closing connection')
             self._connection.close()
