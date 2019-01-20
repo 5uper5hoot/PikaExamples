@@ -51,7 +51,7 @@ View the original source here:
 import logging
 import pika
 
-logger = logging.getlogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class AsyncConsumer(object):
