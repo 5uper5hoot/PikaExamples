@@ -57,13 +57,13 @@ Use it like e.g. this:
     import json
 
     import pika
-    import pika_pool
+    from pikatools.pool import QueuedPool
 
     params = pika.URLParameters(
         'amqp://guest:guest@localhost:5672/%2F?socket_timeout=5&connection_attempts=2'
     )
 
-    pool = pika_pool.QueuedPool(
+    pool = QueuedPool(
         create=lambda: pika.BlockingConnection(parameters=params)
         recycle=45,
         max_size=10,
@@ -76,11 +76,11 @@ Use it like e.g. this:
             body=json.dumps({'type': 'banana', 'color': 'yellow'}),
             exchange='exchange',
             routing_key='banana',
-            properties={
-                'content_type': 'application/json',
-                'content_encoding': 'utf-8',
-                'delivery_mode': 2
-            }
+            properties=pika.BasicProperties(
+                content_type='application/json',
+                content_encoding='utf-8',
+                delivery_mode=2
+            )
         )
 
 """
