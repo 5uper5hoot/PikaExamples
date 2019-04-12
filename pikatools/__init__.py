@@ -14,8 +14,8 @@ import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from .async_publisher import AsyncPublisher
-from .async_consumer import AsyncConsumer
-from .connection import EnvConnectionParameters
-from .simple_async_consumer import SimpleAsyncConsumer
-from .simple_async_publisher import SimpleAsyncPublisher
+from .async_publisher import AsyncPublisher  # noqa
+from .async_consumer import AsyncConsumer  # noqa
+from .connection import EnvConnectionParameters  # noqa
+from .simple_async_consumer import SimpleAsyncConsumer  # noqa
+from .simple_async_publisher import SimpleAsyncPublisher  # noqa

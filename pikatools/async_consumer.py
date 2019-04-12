@@ -9,28 +9,28 @@ governed by the following copyright and license:
 Copyright (c) 2009-2017, Tony Garnock-Jones, Gavin M. Roy, Pivotal and others.
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
  * Redistributions of source code must retain the above copyright notice, this
    list of conditions and the following disclaimer.
  * Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
- * Neither the name of the Pika project nor the names of its contributors may be used
-   to endorse or promote products derived from this software without specific
-   prior written permission.
+ * Neither the name of the Pika project nor the names of its contributors may
+   be used to endorse or promote products derived from this software without
+   specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The following changes have been made to the original source:
     * Altered configuration of LOGGER and the LOGGER variable.
@@ -43,7 +43,7 @@ The following changes have been made to the original source:
 
 View the original source here:
 
-    https://github.com/pika/pika/blob/0.12.0/examples/asynchronous_consumer_example.py
+    github.com/pika/pika/blob/0.12.0/examples/asynchronous_consumer_example.py
 
 *******************************************************************
 """
@@ -146,8 +146,10 @@ class AsyncConsumer(object):
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            logger.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                            reply_code, reply_text)
+            logger.warning(
+                'Connection closed, reopening in 5 seconds: (%s) %s',
+                reply_code, reply_text
+            )
             self._connection.add_timeout(5, self.reconnect)
 
     def reconnect(self):
@@ -210,7 +212,7 @@ class AsyncConsumer(object):
 
         """
         logger.warning('Channel %i was closed: (%s) %s',
-                        channel, reply_code, reply_text)
+                       channel, reply_code, reply_text)
         self._connection.close()
 
     def setup_exchange(self, exchange_name):
@@ -223,14 +225,15 @@ class AsyncConsumer(object):
         """
         logger.info('Declaring exchange %s', exchange_name)
         self._channel.exchange_declare(self.on_exchange_declareok,
-                                        exchange_name,
-                                        self.EXCHANGE_TYPE)
+                                       exchange_name,
+                                       self.EXCHANGE_TYPE)
 
     def on_exchange_declareok(self, unused_frame):
         """Invoked by pika when RabbitMQ has finished the Exchange.Declare RPC
         command.
 
-        :param pika.Frame.Method unused_frame: Exchange.DeclareOk response frame
+        :param pika.Frame.Method unused_frame: Exchange.DeclareOk response
+            frame
 
         """
         logger.info('Exchange declared')
@@ -260,7 +263,7 @@ class AsyncConsumer(object):
         logger.info('Binding %s to %s with %s',
                     self.EXCHANGE, self.QUEUE, self.ROUTING_KEY)
         self._channel.queue_bind(self.on_bindok, self.QUEUE,
-                                    self.EXCHANGE, self.ROUTING_KEY)
+                                 self.EXCHANGE, self.ROUTING_KEY)
 
     def on_bindok(self, unused_frame):
         """Invoked by pika when the Queue.Bind method has completed. At this
@@ -286,7 +289,7 @@ class AsyncConsumer(object):
         logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._consumer_tag = self._channel.basic_consume(self.on_message,
-                                                            self.QUEUE)
+                                                         self.QUEUE)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
