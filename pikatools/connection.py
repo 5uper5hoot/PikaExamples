@@ -5,8 +5,10 @@ import ssl
 
 import pika
 
+
 # alternate bool constructor that first converts arg to int.
-bool_ = lambda s: bool(int(s))
+def bool_(s):
+    return bool(int(s))
 
 
 class EnvConnectionParameters(pika.ConnectionParameters):

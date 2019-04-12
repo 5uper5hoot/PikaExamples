@@ -42,7 +42,7 @@ Pika connection pool inspired by:
 
 and this interface:
 
-    - http://docs.sqlalchemy.org/en/latest/core/pooling.html#sqlalchemy.pool.Pool
+    - docs.sqlalchemy.org/en/latest/core/pooling.html#sqlalchemy.pool.Pool
 
 Get it like this:
 
@@ -60,7 +60,8 @@ Use it like e.g. this:
     from pikatools.pool import QueuedPool
 
     params = pika.URLParameters(
-        'amqp://guest:guest@localhost:5672/%2F?socket_timeout=5&connection_attempts=2'
+        'amqp://guest:guest@localhost:5672/%2F?'
+        'socket_timeout=5&connection_attempts=2'
     )
 
     pool = QueuedPool(
@@ -87,22 +88,18 @@ Use it like e.g. this:
 
 from datetime import datetime
 import logging
-import weakref
-
 import queue
-
-import select
-import socket
 import threading
 import time
+import weakref
 
 import pika.exceptions
 
 
 __all__ = [
-    'Error'
-    'Timeout'
-    'Overflow'
+    'Error',
+    'Timeout',
+    'Overflow',
     'Connection',
     'Pool',
     'NullPool',
@@ -155,7 +152,8 @@ class Connection:
     @classmethod
     def is_connection_invalidated(cls, exc):
         """
-        Says whether the given exception indicates the connection has been invalidated.
+        Says whether the given exception indicates the connection has been
+        invalidated.
 
         :param exc: Exception object.
 
@@ -272,12 +270,15 @@ class Pool:
         def cxn_str(self):
             params = self.cxn_params
             if params:
-                return '{0}:{1}/{2}'.format(params.host, params.port, params.virtual_host)
+                return '{0}:{1}/{2}'.format(
+                    params.host, params.port, params.virtual_host)
 
         def __str__(self):
             return ', '.join('{0}={1}'.format(k, v) for k, v in [
                 ('cxn', self.cxn_str),
-                ('channel', '{0}'.format(int(self.channel) if self.channel is not None else self.channel)),
+                ('channel', '{0}'.format(
+                    int(self.channel) if self.channel is not None
+                    else self.channel)),
             ])
 
     def _create(self):
@@ -310,8 +311,7 @@ class QueuedPool(Pool):
                  max_overflow=10,
                  timeout=30,
                  recycle=None,
-                 stale=None,
-        ):
+                 stale=None):
         """
         :param max_size:
             Maximum number of connections to keep queued.
@@ -387,7 +387,7 @@ class QueuedPool(Pool):
             self._avail -= 1
         try:
             return super()._create()
-        except:
+        except Exception:
             # inc
             with self._avail_lock:
                 self._avail += 1
@@ -402,9 +402,13 @@ class QueuedPool(Pool):
         def __str__(self):
             return ', '.join('{0}={1}'.format(k, v) for k, v in [
                 ('cxn', self.cxn_str),
-                ('channel', '{0}'.format(int(self.channel) if self.channel is not None else self.channel)),
-                ('created_at', '{0}'.format(datetime.fromtimestamp(self.created_at).isoformat())),
-                ('released_at', '{0}'.format(datetime.fromtimestamp(self.released_at).isoformat())),
+                ('channel', '{0}'.format(
+                    int(self.channel) if self.channel is not None
+                    else self.channel)),
+                ('created_at', '{0}'.format(
+                    datetime.fromtimestamp(self.created_at).isoformat())),
+                ('released_at', '{0}'.format(
+                    datetime.fromtimestamp(self.released_at).isoformat())),
             ])
 
     def is_stale(self, fairy):
