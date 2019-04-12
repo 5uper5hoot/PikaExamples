@@ -87,6 +87,7 @@ Use it like e.g. this:
 
 from datetime import datetime
 import logging
+import weakref
 
 import queue
 
@@ -242,6 +243,7 @@ class Pool:
         """
 
         def __init__(self, cxn):
+            weakref.finalize(cxn, cxn.close)
             self.cxn = cxn
             self.channel = None
 
