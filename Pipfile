@@ -11,6 +11,12 @@ pytest = "*"
 "flake8" = "*"
 twine = "*"
 pikatools = {path = "."}
+black = "*"
+isort = {extras = ["pipfile"],version = "*"}
+pre-commit = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true

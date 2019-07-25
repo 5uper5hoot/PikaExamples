@@ -12,10 +12,10 @@ View the original source here:
 
 import logging
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
-
-from .async_publisher import AsyncPublisher  # noqa
 from .async_consumer import AsyncConsumer  # noqa
+from .async_publisher import AsyncPublisher  # noqa
 from .connection import EnvConnectionParameters  # noqa
 from .simple_async_consumer import SimpleAsyncConsumer  # noqa
 from .simple_async_publisher import SimpleAsyncPublisher  # noqa
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())

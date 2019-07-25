@@ -50,25 +50,23 @@ import pytest
 import pikatools.pool as pika_pool
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def params():
-    return pika.URLParameters('amqp://guest:guest@localhost:5672/')
+    return pika.URLParameters("amqp://guest:guest@localhost:5672/")
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def schema(request, params):
     cxn = pika.BlockingConnection(params)
     channel = cxn.channel()
-    channel.queue_declare(queue='pika_pool_test')
+    channel.queue_declare(queue="pika_pool_test")
 
 
-consumed = {
-}
+consumed = {}
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def consume(params):
-
     def _callback(ch, method, properties, body):
         msg = Message.from_json(body)
         consumed[msg.id] = msg
@@ -78,8 +76,8 @@ def consume(params):
 
     cxn = pika.BlockingConnection(params)
     channel = cxn.channel()
-    channel.queue_declare(queue='pika_pool_test')
-    channel.basic_consume(_callback, queue='pika_pool_test', no_ack=True)
+    channel.queue_declare(queue="pika_pool_test")
+    channel.basic_consume(_callback, queue="pika_pool_test", no_ack=True)
 
     thd = threading.Thread(target=_forever)
     thd.daemon = True
@@ -88,39 +86,33 @@ def consume(params):
 
 @pytest.fixture
 def null_pool(params):
-    return pika_pool.NullPool(
-        create=lambda: pika.BlockingConnection(params),
-    )
+    return pika_pool.NullPool(create=lambda: pika.BlockingConnection(params))
 
 
 class Message(dict):
-
     @classmethod
     def generate(cls, **kwargs):
-        id = kwargs.pop('id', uuid.uuid4().hex)
+        id = kwargs.pop("id", uuid.uuid4().hex)
         return cls(id=id, **kwargs)
 
     @property
     def id(self):
-        return self['id']
+        return self["id"]
 
     def to_json(self):
         return json.dumps(self)
 
     @classmethod
     def from_json(cls, raw):
-        return cls(json.loads(raw.decode('utf-8')))
+        return cls(json.loads(raw.decode("utf-8")))
 
 
 class TestNullPool(object):
-
     def test_pub(self, null_pool):
         msg = Message.generate()
         with null_pool.acquire() as cxn:
             cxn.channel.basic_publish(
-                exchange='',
-                routing_key='pika_pool_test',
-                body=msg.to_json()
+                exchange="", routing_key="pika_pool_test", body=msg.to_json()
             )
         time.sleep(0.1)
         assert msg.id in consumed
@@ -149,9 +141,9 @@ def empty_queued_pool(request, queued_pool):
 
 def test_use_it():
     params = pika.URLParameters(
-      'amqp://guest:guest@localhost:5672/?'
-      'socket_timeout=10&'
-      'connection_attempts=2'
+        "amqp://guest:guest@localhost:5672/?"
+        "socket_timeout=10&"
+        "connection_attempts=2"
     )
 
     pool = pika_pool.QueuedPool(
@@ -165,25 +157,23 @@ def test_use_it():
 
     with pool.acquire() as cxn:
         cxn.channel.basic_publish(
-            body=json.dumps({
-                'type': 'banana',
-                'description': 'they are yellow'
-            }),
-            exchange='',
-            routing_key='fruits',
+            body=json.dumps(
+                {"type": "banana", "description": "they are yellow"}
+            ),
+            exchange="",
+            routing_key="fruits",
             properties=pika.BasicProperties(
-                content_type='application/json',
-                content_encoding='utf-8',
+                content_type="application/json",
+                content_encoding="utf-8",
                 delivery_mode=2,
-            )
+            ),
         )
-        assert 'cxn=localhost:5672//' in str(cxn.fairy)
+        assert "cxn=localhost:5672//" in str(cxn.fairy)
 
 
 class TestQueuedPool(object):
-
     def test_invalidate_connection(slef, queued_pool):
-        msg = Message.generate()
+        Message.generate()
         with pytest.raises(pika.exceptions.AMQPConnectionError):
             with queued_pool.acquire() as cxn:
                 fairy = cxn.fairy
@@ -194,9 +184,7 @@ class TestQueuedPool(object):
         msg = Message.generate()
         with queued_pool.acquire() as cxn:
             cxn.channel.basic_publish(
-                exchange='',
-                routing_key='pika_pool_test',
-                body=msg.to_json()
+                exchange="", routing_key="pika_pool_test", body=msg.to_json()
             )
         time.sleep(0.1)
         assert msg.id in consumed
@@ -205,10 +193,10 @@ class TestQueuedPool(object):
         assert queued_pool.recycle
         with queued_pool.acquire() as cxn:
             expired = id(cxn.fairy.cxn)
-            expires_at = cxn.fairy.created_at + queued_pool.recycle
+            cxn.fairy.created_at + queued_pool.recycle
         with queued_pool.acquire() as cxn:
             assert expired == id(cxn.fairy.cxn)
-            cxn.fairy.created_at -= (queued_pool.recycle + 1)
+            cxn.fairy.created_at -= queued_pool.recycle + 1
         with queued_pool.acquire() as cxn:
             assert expired != id(cxn.fairy.cxn)
 
@@ -218,7 +206,7 @@ class TestQueuedPool(object):
             fairy = cxn.fairy
         with queued_pool.acquire() as cxn:
             assert stale == id(cxn.fairy.cxn)
-        fairy.released_at -= (queued_pool.stale + 1)
+        fairy.released_at -= queued_pool.stale + 1
         with queued_pool.acquire() as cxn:
             assert stale != id(cxn.fairy.cxn)
 

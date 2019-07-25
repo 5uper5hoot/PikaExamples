@@ -53,9 +53,10 @@ View the original source here:
 *******************************************************************
 """
 
-import logging
-import pika
 import json
+import logging
+
+import pika
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +74,12 @@ class SimpleAsyncPublisher(object):
     messages that have been sent and if they've been confirmed by RabbitMQ.
 
     """
-    EXCHANGE = 'message'
-    PUBLISH_INTERVAL = 1
-    ROUTING_KEY = 'example.text'
 
-    def __init__(self,  amqp_url=None, conn_params=None):
+    EXCHANGE = "message"
+    PUBLISH_INTERVAL = 1
+    ROUTING_KEY = "example.text"
+
+    def __init__(self, amqp_url=None, conn_params=None):
         """Setup the example publisher object, passing in the URL we will use
         to connect to RabbitMQ.
 
@@ -86,10 +88,10 @@ class SimpleAsyncPublisher(object):
         """
 
         if amqp_url is None and conn_params is None:
-            raise TypeError('One of amqp_url or conn_parms must be provided')
+            raise TypeError("One of amqp_url or conn_parms must be provided")
 
         if amqp_url and conn_params:
-            raise TypeError('Supply only one of amqp_url or conn_params')
+            raise TypeError("Supply only one of amqp_url or conn_params")
 
         self._connection = None
         self._channel = None
@@ -113,7 +115,7 @@ class SimpleAsyncPublisher(object):
         :rtype: pika.SelectConnection
 
         """
-        logger.info('Connecting to %s', self._url)
+        logger.info("Connecting to %s", self._url)
 
         if self._url:
             params = pika.URLParameters(self._url)
@@ -124,7 +126,8 @@ class SimpleAsyncPublisher(object):
             params,
             on_open_callback=self.on_connection_open,
             on_close_callback=self.on_connection_closed,
-            stop_ioloop_on_close=False)
+            stop_ioloop_on_close=False,
+        )
 
     def on_connection_open(self, unused_connection):
         """This method is called by pika once the connection to RabbitMQ has
@@ -134,7 +137,7 @@ class SimpleAsyncPublisher(object):
         :type unused_connection: pika.SelectConnection
 
         """
-        logger.info('Connection opened')
+        logger.info("Connection opened")
         self.open_channel()
 
     def on_connection_closed(self, connection, reply_code, reply_text):
@@ -152,8 +155,10 @@ class SimpleAsyncPublisher(object):
             self._connection.ioloop.stop()
         else:
             logger.warning(
-                'Connection closed, reopening in 5 seconds: (%s) %s',
-                reply_code, reply_text)
+                "Connection closed, reopening in 5 seconds: (%s) %s",
+                reply_code,
+                reply_text,
+            )
             self._connection.add_timeout(5, self._connection.ioloop.stop)
 
     def open_channel(self):
@@ -163,7 +168,7 @@ class SimpleAsyncPublisher(object):
         will be invoked.
 
         """
-        logger.info('Creating a new channel')
+        logger.info("Creating a new channel")
         self._connection.channel(on_open_callback=self.on_channel_open)
 
     def on_channel_open(self, channel):
@@ -175,7 +180,7 @@ class SimpleAsyncPublisher(object):
         :param pika.channel.Channel channel: The channel object
 
         """
-        logger.info('Channel opened')
+        logger.info("Channel opened")
         self._channel = channel
         self.add_on_channel_close_callback()
         self.start_publishing()
@@ -185,7 +190,7 @@ class SimpleAsyncPublisher(object):
         RabbitMQ unexpectedly closes the channel.
 
         """
-        logger.info('Adding channel close callback')
+        logger.info("Adding channel close callback")
         self._channel.add_on_close_callback(self.on_channel_closed)
 
     def on_channel_closed(self, channel, reply_code, reply_text):
@@ -200,7 +205,7 @@ class SimpleAsyncPublisher(object):
         :param str reply_text: The text reason the channel was closed
 
         """
-        logger.warning('Channel was closed: (%s) %s', reply_code, reply_text)
+        logger.warning("Channel was closed: (%s) %s", reply_code, reply_text)
         self._channel = None
         if not self._stopping:
             self._connection.close()
@@ -210,7 +215,7 @@ class SimpleAsyncPublisher(object):
         first message to be sent to RabbitMQ
 
         """
-        logger.info('Issuing consumer related RPC commands')
+        logger.info("Issuing consumer related RPC commands")
         self.enable_delivery_confirmations()
         self.schedule_next_message()
 
@@ -225,7 +230,7 @@ class SimpleAsyncPublisher(object):
         is confirming or rejecting.
 
         """
-        logger.info('Issuing Confirm.Select RPC command')
+        logger.info("Issuing Confirm.Select RPC command")
         self._channel.confirm_delivery(self.on_delivery_confirmation)
 
     def on_delivery_confirmation(self, method_frame):
@@ -241,29 +246,37 @@ class SimpleAsyncPublisher(object):
         :param pika.frame.Method method_frame: Basic.Ack or Basic.Nack frame
 
         """
-        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
-        logger.info('Received %s for delivery tag: %i',
-                    confirmation_type,
-                    method_frame.method.delivery_tag)
-        if confirmation_type == 'ack':
+        confirmation_type = method_frame.method.NAME.split(".")[1].lower()
+        logger.info(
+            "Received %s for delivery tag: %i",
+            confirmation_type,
+            method_frame.method.delivery_tag,
+        )
+        if confirmation_type == "ack":
             self._acked += 1
-        elif confirmation_type == 'nack':
+        elif confirmation_type == "nack":
             self._nacked += 1
         self._deliveries.remove(method_frame.method.delivery_tag)
-        logger.info('Published %i messages, %i have yet to be confirmed, '
-                    '%i were acked and %i were nacked',
-                    self._message_number, len(self._deliveries),
-                    self._acked, self._nacked)
+        logger.info(
+            "Published %i messages, %i have yet to be confirmed, "
+            "%i were acked and %i were nacked",
+            self._message_number,
+            len(self._deliveries),
+            self._acked,
+            self._nacked,
+        )
 
     def schedule_next_message(self):
         """If we are not closing our connection to RabbitMQ, schedule another
         message to be delivered in PUBLISH_INTERVAL seconds.
 
         """
-        logger.info('Scheduling next message for %0.1f seconds',
-                    self.PUBLISH_INTERVAL)
-        self._connection.add_timeout(self.PUBLISH_INTERVAL,
-                                     self.publish_message)
+        logger.info(
+            "Scheduling next message for %0.1f seconds", self.PUBLISH_INTERVAL
+        )
+        self._connection.add_timeout(
+            self.PUBLISH_INTERVAL, self.publish_message
+        )
 
     def publish_message(self):
         """If the class is not stopping, publish a message to RabbitMQ,
@@ -281,20 +294,23 @@ class SimpleAsyncPublisher(object):
         if self._channel is None or not self._channel.is_open:
             return
 
-        hdrs = {u'مفتاح': u' قيمة',
-                u'键': u'值',
-                u'キー': u'値'}
-        properties = pika.BasicProperties(app_id='example-publisher',
-                                          content_type='application/json',
-                                          headers=hdrs)
+        hdrs = {u"مفتاح": u" قيمة", u"键": u"值", u"キー": u"値"}
+        properties = pika.BasicProperties(
+            app_id="example-publisher",
+            content_type="application/json",
+            headers=hdrs,
+        )
 
-        message = u'مفتاح قيمة 键 值 キー 値'
-        self._channel.basic_publish(self.EXCHANGE, self.ROUTING_KEY,
-                                    json.dumps(message, ensure_ascii=False),
-                                    properties)
+        message = u"مفتاح قيمة 键 值 キー 値"
+        self._channel.basic_publish(
+            self.EXCHANGE,
+            self.ROUTING_KEY,
+            json.dumps(message, ensure_ascii=False),
+            properties,
+        )
         self._message_number += 1
         self._deliveries.append(self._message_number)
-        logger.info('Published message # %i', self._message_number)
+        logger.info("Published message # %i", self._message_number)
         self.schedule_next_message()
 
     def run(self):
@@ -313,12 +329,14 @@ class SimpleAsyncPublisher(object):
                 self._connection.ioloop.start()
             except KeyboardInterrupt:
                 self.stop()
-                if (self._connection is not None and
-                        not self._connection.is_closed):
+                if (
+                    self._connection is not None
+                    and not self._connection.is_closed
+                ):
                     # Finish closing
                     self._connection.ioloop.start()
 
-        logger.info('Stopped')
+        logger.info("Stopped")
 
     def stop(self):
         """Stop the example by closing the channel and connection. We
@@ -329,7 +347,7 @@ class SimpleAsyncPublisher(object):
         disconnect from RabbitMQ.
 
         """
-        logger.info('Stopping')
+        logger.info("Stopping")
         self._stopping = True
         self.close_channel()
         self.close_connection()
@@ -340,11 +358,11 @@ class SimpleAsyncPublisher(object):
 
         """
         if self._channel is not None:
-            logger.info('Closing the channel')
+            logger.info("Closing the channel")
             self._channel.close()
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
         if self._connection is not None:
-            logger.info('Closing connection')
+            logger.info("Closing connection")
             self._connection.close()
